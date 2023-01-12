@@ -1,0 +1,38 @@
+name: PR-Build
+on: 
+  pull_request:
+
+jobs:
+  previewctl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Dump context
+        uses: crazy-max/ghaction-dump-context@v1
+      - name: Run a multi-line script
+        run: |
+          echo "${{ github.event.pull_request.body }}"
+
+  infrastructure:
+    if: ${{ github.event.pull_request.body.contains('queued') }}
+    runs-on: ubuntu-latest
+    needs: [previewctl]
+    steps:
+      - uses: actions/checkout@v3
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+  install:
+    needs: [previewctl, build, infrastructure]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+  monitoring:
+    needs: [previewctl, infrastructure]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
